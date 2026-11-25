@@ -9,7 +9,16 @@ export default defineConfig({
       // ask before reloading into a new version, so an open form is never lost
       registerType: 'prompt',
       injectRegister: false,
-      includeAssets: ['icons/icon.svg', 'icons/apple-touch-icon.png', 'icons/favicon-32.png'],
+      // nothing is precached: every same-origin request goes network-first (see workbox below)
+      includeManifestIcons: false,
+      integration: {
+        // the plugin always precaches the web manifest; drop it so it is network-first too
+        beforeBuildServiceWorker(options) {
+          options.workbox.additionalManifestEntries = (options.workbox.additionalManifestEntries || []).filter(
+            (e) => (typeof e === 'string' ? e : e.url) !== options.manifestFilename,
+          );
+        },
+      },
       manifest: {
         id: './',
         name: 'ניהול ועד בית',
@@ -38,12 +47,21 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
-        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
-        navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/auth-redirect\.html/],
+        // network-first, fall back to cache: always the latest version when online,
+        // the last version seen when offline
+        globPatterns: [],
+        importScripts: ['sw-cleanup.js'],
         cleanupOutdatedCaches: true,
         runtimeCaching: [
+          {
+            urlPattern: ({ sameOrigin }) => sameOrigin,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'app',
+              expiration: { maxEntries: 100, purgeOnQuotaError: true },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
           {
             urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
             handler: 'StaleWhileRevalidate',
