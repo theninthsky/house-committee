@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useData } from './lib/store';
 import { autoBackup } from './lib/backup';
+import { providerLabel, runDailyCloudBackup } from './lib/cloud';
+import { CloudPendingBanner } from './components/cloud';
 import { DialogHost, Icon, Toasts, toast, useRoute } from './components/ui';
 import { FormHost } from './components/forms';
 import { Dashboard } from './pages/Dashboard';
@@ -49,6 +51,7 @@ export function App() {
   useEffect(() => {
     if (!d.settings.setupDone) return;
     autoBackup(false).then((r) => r === 'done' && toast('גיבוי יומי נשמר בתיקיית הגיבוי', 'info'));
+    runDailyCloudBackup().then((done) => done.forEach((id) => toast(`גיבוי יומי נשמר ב-${providerLabel(id)}`, 'info')));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d.settings.setupDone]);
 
@@ -119,6 +122,7 @@ export function App() {
       </aside>
       <main className="main">
         {pwa.needRefresh && <UpdateBanner />}
+        <CloudPendingBanner />
         {page}
       </main>
       <FormHost />

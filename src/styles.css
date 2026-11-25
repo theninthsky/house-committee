@@ -294,3 +294,10 @@ table.t .row-actions { display: flex; gap: 2px; justify-content: flex-end; }
 @media (display-mode: standalone) {
   body { overscroll-behavior-y: none; }
 }
+
+/* ===== Cloud backup ===== */
+.cloud-list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.cloud-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; background: var(--surface-2); }
+.cloud-row .grow { flex: 1; }
+.cloud-logo { width: 40px; height: 40px; border-radius: 10px; background: #fff; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.cloud-sub { flex-basis: 100%; display: flex; align-items: center; justify-content: space-between; border-top: 1px dashed var(--border); padding-top: 8px; }

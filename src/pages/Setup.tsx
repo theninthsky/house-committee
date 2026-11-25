@@ -6,6 +6,7 @@ import { loadDemoData } from '../lib/demo';
 import { restoreBackup } from '../lib/backup';
 import { currentMonth, todayISO, uid } from '../lib/format';
 import { attempt, Field, FileDrop, Icon, NumInput, toast } from '../components/ui';
+import { SetupCloudRestore } from '../components/cloud';
 
 export function SetupWizard() {
   const [step, setStep] = useState(0);
@@ -110,6 +111,7 @@ export function SetupWizard() {
                 <Icon name="upload" /> יש לכם קובץ גיבוי? גררו אותו לכאן לשחזור
               </FileDrop>
             </div>
+            <SetupCloudRestore />
           </div>
         )}
 

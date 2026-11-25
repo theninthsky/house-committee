@@ -52,7 +52,7 @@ export function downloadBlob(blob: Blob, name: string) {
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
-function markBackedUp(where: string) {
+export function markBackedUp(where: string) {
   update(
     (d) => {
       d.settings.lastBackupAt = new Date().toISOString();

@@ -8,6 +8,7 @@ import { fmtDateTime, todayISO } from '../lib/format';
 import { exportExcel } from '../lib/excel';
 import { attempt, confirmDialog, Field, FileDrop, Icon, NumInput, PageHead, promptDialog, toast } from '../components/ui';
 import { loadDemoData } from '../lib/demo';
+import { CloudBackupPanel } from '../components/cloud';
 
 const TABS = [
   { id: 'building', label: 'פרטי הבניין' },
@@ -28,7 +29,12 @@ export function SettingsPage({ tab = 'building' }: { tab?: string }) {
       {tab === 'building' && <BuildingTab />}
       {tab === 'finance' && <FinanceTab />}
       {tab === 'periods' && <PeriodsTab />}
-      {tab === 'backup' && <BackupTab />}
+      {tab === 'backup' && (
+        <>
+          <CloudBackupPanel />
+          <BackupTab />
+        </>
+      )}
       {tab === 'audit' && <AuditTab />}
       {tab === 'data' && <DataTab />}
     </>

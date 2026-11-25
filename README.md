@@ -28,6 +28,45 @@ npm run dev
 - האייקונים נוצרים מ-`scripts/generate-icons.mjs`. אחרי שינוי בעיצוב מריצים `npm run icons`.
 - הנתונים נשמרים לפי כתובת האתר: אפליקציה מותקנת ואותו אתר בדפדפן חולקים את אותם נתונים.
 
+## גיבוי ל-Google Drive ול-OneDrive
+
+המשתמש מתחבר פעם אחת לחשבון שלו, ואז הגיבוי נשמר בענן בלחיצה, או אוטומטית פעם ביום. אפשר לשחזר ממנו בכל מכשיר, כולל ממסך ההקמה במכשיר חדש. נשמרים 30 הגיבויים האחרונים.
+כדי שזה יעבוד צריך לרשום את האפליקציה פעם אחת אצל Google ואצל Microsoft (בחינם), ולהגדיר את המזהים שמתקבלים. ספק שלא הוגדר לו מזהה פשוט לא מוצג.
+
+בהוראות למטה, `<הכתובת>` היא כתובת האתר ב-Cloudflare, לדוגמה `https://house-committee.example.workers.dev`.
+
+### Google Drive (כ-15 דקות)
+
+1. נכנסים ל-[Google Cloud Console](https://console.cloud.google.com/) ויוצרים פרויקט חדש.
+2. **APIs & Services ← Library**: מחפשים **Google Drive API** ולוחצים **Enable**.
+3. **Google Auth Platform ← Branding**: שם האפליקציה ("ועד הבית") ואימייל לתמיכה. ב-**Audience** בוחרים **External**, ואז **Publish app**, כדי שלא יהיה צורך להוסיף משתמשי בדיקה.
+4. **Data Access ← Add or remove scopes**: מסמנים `.../auth/drive.file`, `openid` ו-`email`. אלה הרשאות שאינן רגישות, ולכן לא נדרש תהליך אימות של Google.
+5. **Clients ← Create client**, מסוג **Web application**. ב-**Authorized JavaScript origins** מוסיפים את `<הכתובת>`, ולפיתוח מקומי גם `http://localhost:3000`. אין צורך ב-Redirect URI.
+6. מעתיקים את ה-**Client ID** ומגדירים אותו כ-`VITE_GOOGLE_CLIENT_ID`.
+
+לאפליקציה יש גישה רק לקבצים שהיא עצמה יצרה (תיקיית "גיבויי ועד הבית"), ולא לשאר הקבצים ב-Drive.
+
+### OneDrive (כ-15 דקות)
+
+1. נכנסים ל-[Microsoft Entra admin center](https://entra.microsoft.com/) ← **App registrations ← New registration**. אם אין לכם עדיין ספרייה (tenant), פותחים חשבון Azure חינמי.
+2. ב-**Supported account types** בוחרים **Accounts in any organizational directory and personal Microsoft accounts**.
+3. ב-**Redirect URI** בוחרים את הפלטפורמה **Single-page application (SPA)** ומזינים `<הכתובת>/auth-redirect.html`. לפיתוח מקומי מוסיפים אחר כך גם `http://localhost:3000/auth-redirect.html` (במסך Authentication).
+4. **API permissions ← Add a permission ← Microsoft Graph ← Delegated**: מוסיפים **Files.ReadWrite.AppFolder**. ההרשאה **User.Read** כבר קיימת.
+5. מעתיקים את ה-**Application (client) ID** ממסך Overview ומגדירים אותו כ-`VITE_MS_CLIENT_ID`.
+
+הגיבויים נשמרים בתיקייה Apps (יישומים) ב-OneDrive, והאפליקציה לא ניגשת לקבצים אחרים.
+
+### הגדרת המזהים
+
+- **ב-Cloudflare:** בהגדרות הפרויקט ← Build ← **Variables and secrets** (משתני build, לא משתני runtime), מוסיפים את `VITE_GOOGLE_CLIENT_ID` ואת `VITE_MS_CLIENT_ID`, ואז מריצים deploy מחדש. המזהים האלה ציבוריים, ואין בהם סוד.
+- **בפיתוח מקומי:** מעתיקים את `.env.example` ל-`.env.local` וממלאים אותו.
+
+### התנהגות הגיבוי האוטומטי
+
+- **OneDrive:** הגיבוי היומי רץ ברקע בפתיחת המערכת, כל עוד ההתחברות בתוקף (בדרך כלל עד יום).
+- **Google Drive:** Google לא מאפשרת חידוש התחברות שקט באתר ללא שרת. לכן כשהגיבוי היומי מגיע, מופיע באנר "גבה עכשיו", ולחיצה אחת מאשרת ומגבה.
+- **בשני המכשירים:** לפני שעובדים במכשיר אחר, כדאי לשחזר בו את הגיבוי האחרון. השחזור מחליף את הנתונים במכשיר.
+
 ## מה יש במערכת
 
 | מודול | מסך |
@@ -47,7 +86,7 @@ npm run dev
 ## חשוב לדעת: איפה הנתונים נשמרים
 
 - הנתונים נשמרים **רק בדפדפן שבו עובדים**. דפדפן אחר או מחשב אחר לא יראו אותם.
-- **גיבוי:** הגדרות ← גיבוי ושחזור. אפשר להוריד קובץ גיבוי (כולל הקבצים הסרוקים), או לבחור תיקייה שמסונכרנת לענן (למשל Google Drive) לגיבוי יומי אוטומטי (Chrome / Edge).
+- **גיבוי:** הגדרות ← גיבוי ושחזור. אפשר לגבות ל-Google Drive או ל-OneDrive (ראו למעלה), להוריד קובץ גיבוי (כולל הקבצים הסרוקים), או לבחור תיקייה שמסונכרנת לענן לגיבוי יומי אוטומטי (Chrome / Edge).
 - מעבר למחשב אחר: גיבוי במחשב הישן ← שחזור במחשב החדש.
 - ניקוי נתוני הגלישה בדפדפן מוחק גם את נתוני המערכת. לכן חשוב לגבות.
 
